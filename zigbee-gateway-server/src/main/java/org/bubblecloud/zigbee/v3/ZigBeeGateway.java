@@ -81,6 +81,7 @@ public final class ZigBeeGateway {
 		commands.put("unbind", new UnbindCommand());
 		commands.put("on", new OnCommand());
 		commands.put("off", new OffCommand());
+		commands.put("normal", new InitNormalOpCommand());
 		commands.put("color", new ColorCommand());
 		commands.put("level", new LevelCommand());
 		commands.put("listen", new ListenCommand());
@@ -689,6 +690,41 @@ public final class ZigBeeGateway {
             }
 
             final CommandResult response = zigbeeApi.off(destination).get();
+            return defaultResponseProcessing(response, out);
+        }
+    }
+
+    /**
+     * Switches a device off.
+     */
+    private class InitNormalOpCommand implements ConsoleCommand {
+        /**
+         * {@inheritDoc}
+         */
+        public String getDescription() {
+            return "Init normal operation mode.";
+        }
+        /**
+         * {@inheritDoc}
+         */
+        public String getSyntax() {
+            return "normal DEVICEID/DEVICELABEL/GROUPID";
+        }
+        /**
+         * {@inheritDoc}
+         */
+        public boolean process(final ZigBeeApiDongleImpl zigbeeApi, final String[] args, PrintStream out) throws Exception {
+            if (args.length != 2) {
+                return false;
+            }
+
+            final ZigBeeDestination destination = getDestination(zigbeeApi, args[1], out);
+
+            if (destination == null) {
+                return false;
+            }
+
+            final CommandResult response = zigbeeApi.normalOp(destination).get();
             return defaultResponseProcessing(response, out);
         }
     }
@@ -1951,7 +1987,8 @@ public final class ZigBeeGateway {
                 value = Integer.parseInt(stringValue);
                 break;
             case SinglePrecision:
-                throw new UnsupportedOperationException("SinglePrecision parsing not implemented");
+                value = Float.parseFloat(stringValue);
+                break;
             case UnsignedInteger16bit:
                 value = Integer.parseInt(stringValue);
                 break;
