@@ -201,7 +201,7 @@ public class DefaultDeserializer implements ZBDeserializer {
             case Bitmap32bit:
             case UnsignedInteger32bit:
             case SignedInteger32bit:
-                int i24 = read_int24bit();
+                int i24 = read_int();
                 value[0] = new Integer(i24);
                 break;
             case IEEEAddress:
@@ -222,6 +222,16 @@ public class DefaultDeserializer implements ZBDeserializer {
                 int size = read_short();
                 value[0] = readString(size);
             }
+            case SinglePrecision: {
+                int raw = read_int();
+                value[0] = Float.intBitsToFloat(Integer.reverseBytes(raw));
+            }
+            break;
+            case DoublePrecision: {
+                long raw = read_long();
+                value[0] = Double.longBitsToDouble(Long.reverseBytes(raw));
+            }
+            break;
             default:
                 throw new IllegalArgumentException(
                         "No reader defined by this " + ZBDeserializer.class.getName() +

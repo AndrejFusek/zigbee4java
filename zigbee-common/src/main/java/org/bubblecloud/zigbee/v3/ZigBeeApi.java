@@ -1,5 +1,6 @@
 package org.bubblecloud.zigbee.v3;
 
+import org.bubblecloud.zigbee.util.Cie;
 import org.bubblecloud.zigbee.util.ZigBeeConstants;
 import org.bubblecloud.zigbee.v3.model.ZToolAddress16;
 import org.bubblecloud.zigbee.v3.zcl.ZclCommand;
@@ -20,16 +21,20 @@ import org.bubblecloud.zigbee.v3.zcl.protocol.command.groups.RemoveGroupCommand;
 import org.bubblecloud.zigbee.v3.zcl.protocol.command.groups.ViewGroupCommand;
 import org.bubblecloud.zigbee.v3.zcl.protocol.command.ias.wd.SquawkCommand;
 import org.bubblecloud.zigbee.v3.zcl.protocol.command.ias.wd.StartWarningCommand;
+import org.bubblecloud.zigbee.v3.zcl.protocol.command.ias.zone.InitiateNormalOperationCommand;
+import org.bubblecloud.zigbee.v3.zcl.protocol.command.ias.zone.InitiateTestModeCommand;
 import org.bubblecloud.zigbee.v3.zcl.protocol.command.level.control.MoveToLevelCommand;
 import org.bubblecloud.zigbee.v3.zcl.protocol.command.on.off.OffCommand;
 import org.bubblecloud.zigbee.v3.zcl.protocol.command.on.off.OnCommand;
-import org.bubblecloud.zigbee.v3.zdo.command.*;
-import org.bubblecloud.zigbee.util.Cie;
+import org.bubblecloud.zigbee.v3.zdo.command.BindRequest;
+import org.bubblecloud.zigbee.v3.zdo.command.ManagementPermitJoinRequest;
+import org.bubblecloud.zigbee.v3.zdo.command.UnbindRequest;
+import org.bubblecloud.zigbee.v3.zdo.command.UserDescriptorSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Future;
 
 /**
  * ZigBee API. This API is experimental and under development.
@@ -278,6 +283,29 @@ public class ZigBeeApi {
      */
     public Future<CommandResult> off(final ZigBeeDestination destination) {
         final OffCommand command = new OffCommand();
+        return send(destination, command);
+    }
+
+    /**
+     * Switches destination on.
+     * @param destination the destination
+     * @return the command result future.
+     */
+    public Future<CommandResult> normalOp(final ZigBeeDestination destination) {
+        final InitiateNormalOperationCommand command = new InitiateNormalOperationCommand();
+        return send(destination, command);
+    }
+
+    /**
+     * Switches destination on.
+     * @param destination the destination
+     * @return the command result future.
+     */
+    public Future<CommandResult> testMode(final ZigBeeDestination destination, final int duration,
+                                          final int sensitivityLevel) {
+        final InitiateTestModeCommand command = new InitiateTestModeCommand();
+        command.setTestModeDuration(duration);
+        command.setCurrentZoneSensitivityLevel(sensitivityLevel);
         return send(destination, command);
     }
 

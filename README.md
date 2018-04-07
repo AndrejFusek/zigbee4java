@@ -12,7 +12,7 @@ embedded or gateway mode. In gateway mode a gateway process is run to provide si
 and JSON RPC interface to ZigBee network. ZigBee Gateway Client library can be used to connect to gateway.
 See 'Usage'-chapter for examples. 
 
-ZigBee API for Java is originally a fork of ZB4OSGI.
+ZigBee API for Java is originally a fork of tlaukkan/zigbee4java which is fork of ZB4OSGI.
 
 Questions can be sent to the following email address: 'zigbee4java@googlegroups.com'.
 

@@ -141,6 +141,12 @@ public class ByteArrayOutputStreamSerializer implements ZBSerializer {
                 appendString(str);
             }
             break;
+            case SinglePrecision:
+                append_int(Float.floatToIntBits((Float)data));
+                break;
+            case DoublePrecision:
+                append_long(Double.doubleToLongBits((Double)data));
+                break;
             default:
                 throw new IllegalArgumentException(
                         "No reader defined by this " + ZBDeserializer.class.getName() +

@@ -23,7 +23,7 @@ public class ZclProtocolCodeGenerator {
         if (args.length != 0) {
             definitionFilePath = args[0];
         } else {
-            definitionFilePath = "./src/main/resources/zcl.def";
+            definitionFilePath = "./code-generator/src/main/resources/zcl.def";
         }
 
         final File definitionFile = new File(definitionFilePath);
@@ -36,16 +36,16 @@ public class ZclProtocolCodeGenerator {
         if (args.length != 0) {
             sourceRootPath = args[0];
         } else {
-            sourceRootPath = "../zigbee-api/src/main/java/";
+            sourceRootPath = "./zigbee-api/src/main/java/";
         }
 
         final File sourceRootFile = new File(sourceRootPath);
         if (!sourceRootFile.exists()) {
-            System.out.println("Source root path does not exist: " + definitionFilePath);
+            System.out.println("Source root path does not exist: " + sourceRootPath);
             return;
         }
         if (!sourceRootFile.isDirectory()) {
-            System.out.println("Source root path is not directory: " + definitionFilePath);
+            System.out.println("Source root path is not directory: " + sourceRootPath);
             return;
         }
 

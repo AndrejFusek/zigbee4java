@@ -967,6 +967,16 @@ No cluster specific commands.
 |Enroll response code       |8-bit enumeration          |
 |Zone ID                    |Unsigned 8-bit integer     |
 
+**** Initiate Normal Operation Command [0x01]
+|Field Name                 |Data Type                  |
+|---------------------------+---------------------------|
+
+**** Initiate Test Mode Command [0x02]
+|Field Name                 |Data Type                  |
+|---------------------------+---------------------------|
+|Test Mode Duration         |16-bit enumeration         |
+|Current Zone Sensitivity Level |Unsigned 8-bit integer |
+
 *** Generated
 
 **** Zone Status Change Notification Command [0x00]

@@ -85,6 +85,8 @@ public enum ZclCommandType {
     STEP_COLOR_COMMAND(9, ZclClusterType.COLOR_CONTROL, "Step Color Command", true, false),
     MOVE_TO_COLOR_TEMPERATURE_COMMAND(10, ZclClusterType.COLOR_CONTROL, "Move to Color Temperature Command", true, false),
     ZONE_ENROLL_RESPONSE_COMMAND(0, ZclClusterType.IAS_ZONE, "Zone Enroll Response Command", true, false),
+    INITIATE_NORMAL_OPERATION_COMMAND(1, ZclClusterType.IAS_ZONE, "Initiate Normal Operation Command", true, false),
+    INITIATE_TEST_MODE_COMMAND(2, ZclClusterType.IAS_ZONE, "Initiate Test Mode Command", true, false),
     ZONE_STATUS_CHANGE_NOTIFICATION_COMMAND(0, ZclClusterType.IAS_ZONE, "Zone Status Change Notification Command", false, false),
     ZONE_ENROLL_REQUEST_COMMAND(1, ZclClusterType.IAS_ZONE, "Zone Enroll Request Command", false, false),
     ARM_COMMAND(0, ZclClusterType.IAS_ACE, "Arm Command", true, false),
