@@ -3,7 +3,7 @@ package org.bubblecloud.zigbee.v3.rpc;
 import org.bubblecloud.zigbee.v3.Command;
 import org.bubblecloud.zigbee.v3.ZigBeeDevice;
 import org.bubblecloud.zigbee.v3.ZigBeeException;
-import org.bubblecloud.zigbee.v3.ZigBeeGroupAddress;
+import org.bubblecloud.zigbee.v3.ZigBeeGroup;
 
 import java.util.List;
 
@@ -90,12 +90,12 @@ public interface ZigBeeRpcApi {
      * @param groupId the group ID
      * @return the ZigBee group or null if no exists with given group ID.
      */
-    ZigBeeGroupAddress getGroup(int groupId);
+    ZigBeeGroup getGroup(int groupId);
 
     /**
      * Gets all groups.
      * @return list of groups.
      */
-    List<ZigBeeGroupAddress> getGroups();
+    List<ZigBeeGroup> getGroups();
 
 }

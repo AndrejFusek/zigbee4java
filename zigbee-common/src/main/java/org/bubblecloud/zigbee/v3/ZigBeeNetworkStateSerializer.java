@@ -20,7 +20,7 @@ public class ZigBeeNetworkStateSerializer {
         final ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.enableDefaultTyping();
         objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-        final List<Object> destinations = new ArrayList<Object>();
+        final List<ZigBeeDestination> destinations = new ArrayList<ZigBeeDestination>();
         destinations.addAll(networkState.getDevices());
         destinations.addAll(networkState.getGroups());
         try {
@@ -39,15 +39,15 @@ public class ZigBeeNetworkStateSerializer {
         final ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.enableDefaultTyping();
         objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-        final List<Object> devices;
+        final List<ZigBeeDestination> devices;
         try {
             devices = objectMapper.readValue(networkStateString, ArrayList.class);
         } catch (final IOException e) {
             throw new RuntimeException("Error serializing network state.", e);
         }
-        for (final Object destination : devices) {
-            if (destination instanceof ZigBeeGroupAddress) {
-                networkState.addGroup((ZigBeeGroupAddress) destination);
+        for (final ZigBeeDestination destination : devices) {
+            if (destination.isGroup()) {
+                networkState.addGroup((ZigBeeGroup) destination);
             } else {
                 networkState.addDevice((ZigBeeDevice) destination);
             }

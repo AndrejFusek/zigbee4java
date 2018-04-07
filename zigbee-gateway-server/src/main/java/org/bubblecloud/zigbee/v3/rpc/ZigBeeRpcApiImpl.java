@@ -117,12 +117,12 @@ public class ZigBeeRpcApiImpl implements ZigBeeRpcApi, CommandListener {
     }
 
     @Override
-    public ZigBeeGroupAddress getGroup(int groupId) {
+    public ZigBeeGroup getGroup(int groupId) {
         return zigBeeGateway.getZigBeeApi().getGroup(groupId);
     }
 
     @Override
-    public List<ZigBeeGroupAddress> getGroups() {
+    public List<ZigBeeGroup> getGroups() {
         return zigBeeGateway.getZigBeeApi().getGroups();
     }
 

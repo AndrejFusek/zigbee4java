@@ -15,8 +15,7 @@ public class ZigBeeNetworkStateImpl implements ZigBeeNetworkState {
     /**
      * The logger.
      */
-    private final static Logger LOGGER = LoggerFactory
-            .getLogger(ZigBeeNetworkStateImpl.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(ZigBeeNetworkStateImpl.class);
     /**
      * The devices in the ZigBee network.
      */
@@ -24,12 +23,12 @@ public class ZigBeeNetworkStateImpl implements ZigBeeNetworkState {
     /**
      * The groups in the ZigBee network.
      */
-    private Map<Integer, ZigBeeGroupAddress> groups = new TreeMap<Integer, ZigBeeGroupAddress>();
+    private Map<Integer, ZigBeeGroup> groups = new TreeMap<Integer, ZigBeeGroup>();
     /**
      * The listeners of the ZigBee network.
      */
-    private List<ZigBeeNetworkStateListener> listeners = Collections
-            .unmodifiableList(new ArrayList<ZigBeeNetworkStateListener>());
+    private List<ZigBeeNetworkStateListener> listeners = Collections.unmodifiableList(
+            new ArrayList<ZigBeeNetworkStateListener>());
     /**
      * The network reset flag.
      */
@@ -42,9 +41,7 @@ public class ZigBeeNetworkStateImpl implements ZigBeeNetworkState {
     /**
      * Constructor which configures whether network shoule be reset at startup
      * or loaded from serialized file.
-     * 
-     * @param resetNetwork
-     *            the network reset flag
+     * @param resetNetwork the network reset flag
      */
     public ZigBeeNetworkStateImpl(boolean resetNetwork) {
         this.resetNetwork = resetNetwork;
@@ -60,11 +57,9 @@ public class ZigBeeNetworkStateImpl implements ZigBeeNetworkState {
             LOGGER.info("Loading network state...");
             final String networkStateString;
             try {
-                networkStateString = FileUtils
-                        .readFileToString(networkStateFile);
+                networkStateString = FileUtils.readFileToString(networkStateFile);
             } catch (final IOException e) {
-                LOGGER.error("Error loading network state from file: "
-                        + networkStateFile.getAbsolutePath());
+                LOGGER.error("Error loading network state from file: " + networkStateFile.getAbsolutePath());
                 return;
             }
             final ZigBeeNetworkStateSerializer serializer = new ZigBeeNetworkStateSerializer();
@@ -81,32 +76,30 @@ public class ZigBeeNetworkStateImpl implements ZigBeeNetworkState {
         final ZigBeeNetworkStateSerializer serializer = new ZigBeeNetworkStateSerializer();
         final File networkStateFile = new File(networkStateFilePath);
         try {
-            FileUtils.writeStringToFile(networkStateFile,
-                    serializer.serialize(this), false);
+            FileUtils.writeStringToFile(networkStateFile, serializer.serialize(this), false);
         } catch (final IOException e) {
-            LOGGER.error("Error loading network state from file: "
-                    + networkStateFile.getAbsolutePath());
+            LOGGER.error("Error loading network state from file: " + networkStateFile.getAbsolutePath());
             return;
         }
         LOGGER.info("ZigBeeApi saving network state done.");
     }
 
     @Override
-    public void addGroup(final ZigBeeGroupAddress group) {
+    public void addGroup(final ZigBeeGroup group) {
         synchronized (groups) {
             groups.put(group.getGroupId(), group);
         }
     }
 
     @Override
-    public void updateGroup(ZigBeeGroupAddress group) {
+    public void updateGroup(ZigBeeGroup group) {
         synchronized (groups) {
             groups.put(group.getGroupId(), group);
         }
     }
 
     @Override
-    public ZigBeeGroupAddress getGroup(final int groupId) {
+    public ZigBeeGroup getGroup(final int groupId) {
         synchronized (groups) {
             return groups.get(groupId);
         }
@@ -114,25 +107,25 @@ public class ZigBeeNetworkStateImpl implements ZigBeeNetworkState {
 
     @Override
     public void removeGroup(final int groupId) {
-        final ZigBeeGroupAddress group;
+        final ZigBeeGroup group;
         synchronized (groups) {
             group = groups.remove(groupId);
         }
     }
 
     @Override
-    public List<ZigBeeGroupAddress> getGroups() {
+    public List<ZigBeeGroup> getGroups() {
         synchronized (groups) {
-            return new ArrayList<ZigBeeGroupAddress>(groups.values());
+            return new ArrayList<ZigBeeGroup>(groups.values());
         }
     }
+
+
 
     @Override
     public void addDevice(final ZigBeeDevice device) {
         synchronized (devices) {
-            devices.put(
-                    device.getNetworkAddress() + "/" + device.getEndpoint(),
-                    device);
+            devices.put(device.getNetworkAddress() + "/" + device.getEndpoint(), device);
         }
         synchronized (this) {
             for (final ZigBeeNetworkStateListener listener : listeners) {
@@ -144,7 +137,7 @@ public class ZigBeeNetworkStateImpl implements ZigBeeNetworkState {
     @Override
     public void updateDevice(ZigBeeDevice device) {
         synchronized (devices) {
-            devices.put(device.getDeviceAddress().toString(), device);
+            devices.put(device.getNetworkAddress() + "/" + device.getEndpoint(), device);
         }
         synchronized (this) {
             for (final ZigBeeNetworkStateListener listener : listeners) {
@@ -154,14 +147,9 @@ public class ZigBeeNetworkStateImpl implements ZigBeeNetworkState {
     }
 
     @Override
-    public ZigBeeDevice getDevice(final ZigBeeAddress networkAddress) {
-        if (networkAddress.isGroup()) {
-            return null;
-        }
-
+    public ZigBeeDevice getDevice(final int networkAddress, int endpoint) {
         synchronized (devices) {
-            // TODO Maybe this should just use the network address as the key?
-            return devices.get(networkAddress.toString());
+            return devices.get(networkAddress + "/" + endpoint);
         }
     }
 
@@ -188,8 +176,7 @@ public class ZigBeeNetworkStateImpl implements ZigBeeNetworkState {
     }
 
     @Override
-    public void addNetworkListener(
-            final ZigBeeNetworkStateListener networkListener) {
+    public void addNetworkListener(final ZigBeeNetworkStateListener networkListener) {
         synchronized (this) {
             final List<ZigBeeNetworkStateListener> modifiedListeners = new ArrayList<ZigBeeNetworkStateListener>(
                     listeners);
@@ -199,8 +186,7 @@ public class ZigBeeNetworkStateImpl implements ZigBeeNetworkState {
     }
 
     @Override
-    public void removeNetworkListener(
-            final ZigBeeNetworkStateListener networkListener) {
+    public void removeNetworkListener(final ZigBeeNetworkStateListener networkListener) {
         synchronized (this) {
             final List<ZigBeeNetworkStateListener> modifiedListeners = new ArrayList<ZigBeeNetworkStateListener>(
                     listeners);

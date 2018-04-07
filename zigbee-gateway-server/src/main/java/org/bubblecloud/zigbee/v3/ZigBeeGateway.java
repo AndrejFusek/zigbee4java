@@ -270,22 +270,22 @@ public final class ZigBeeGateway {
      * @param destinationIdentifier the device identifier or group ID
      * @return the device
      */
-    private ZigBeeAddress getDestination(final ZigBeeApiDongleImpl zigbeeApi, final String destinationIdentifier
+    private ZigBeeDestination getDestination(final ZigBeeApiDongleImpl zigbeeApi, final String destinationIdentifier
             ,final PrintStream out) {
         final ZigBeeDevice device = getDevice(zigbeeApi, destinationIdentifier);
 
         if (device != null) {
-            return device.getDeviceAddress();
+            return device;
         }
 
         try {
-            for (final ZigBeeGroupAddress group : zigbeeApi.getGroups()) {
+            for (final ZigBeeGroup group : zigbeeApi.getGroups()) {
                 if (destinationIdentifier.equals(group.getLabel())) {
                     return group;
                 }
             }
             final int groupId = Integer.parseInt(destinationIdentifier);
-            ZigBeeGroupAddress group = zigbeeApi.getGroup(groupId);
+            ZigBeeGroup group = zigbeeApi.getGroup(groupId);
             if (group == null) {
                 zigBeeApi.addMembership(groupId, Integer.toString(groupId));
             }
@@ -458,8 +458,8 @@ public final class ZigBeeGateway {
          * {@inheritDoc}
          */
         public boolean process(final ZigBeeApiDongleImpl zigbeeApi, final String[] args, PrintStream out) {
-            final List<ZigBeeGroupAddress> groups = zigbeeApi.getGroups();
-            for (final ZigBeeGroupAddress group : groups) {
+            final List<ZigBeeGroup> groups = zigbeeApi.getGroups();
+            for (final ZigBeeGroup group : groups) {
                 print(StringUtils.leftPad(Integer.toString(group.getGroupId()), 10) + "      " + group.getLabel(), out);
             }
             return true;
@@ -647,7 +647,7 @@ public final class ZigBeeGateway {
                 return false;
             }
 
-            final ZigBeeAddress destination = getDestination(zigbeeApi, args[1], out);
+            final ZigBeeDestination destination = getDestination(zigbeeApi, args[1], out);
 
             if (destination == null) {
                 return false;
@@ -683,7 +683,7 @@ public final class ZigBeeGateway {
                 return false;
             }
 
-            final ZigBeeAddress destination = getDestination(zigbeeApi, args[1], out);
+            final ZigBeeDestination destination = getDestination(zigbeeApi, args[1], out);
 
             if (destination == null) {
                 return false;
@@ -753,7 +753,7 @@ public final class ZigBeeGateway {
                 return false;
             }
 
-            final ZigBeeAddress destination = getDestination(zigbeeApi, args[1], out);
+            final ZigBeeDestination destination = getDestination(zigbeeApi, args[1], out);
             if (destination == null) {
                 return false;
             }
@@ -915,15 +915,15 @@ public final class ZigBeeGateway {
                 return false;
             }
 
-            final ZigBeeAddress destination = getDestination(zigbeeApi, args[1], out);
+            final ZigBeeDestination destination = getDestination(zigbeeApi, args[1], out);
             if (destination == null) {
                 return false;
             }
-            if (!(destination instanceof ZigBeeGroupAddress)) {
+            if (!(destination instanceof ZigBeeGroup)) {
                 return false;
             }
 
-            final ZigBeeGroupAddress group = (ZigBeeGroupAddress) destination;
+            final ZigBeeGroup group = (ZigBeeGroup) destination;
             zigbeeApi.removeMembership(group.getGroupId());
             return true;
         }
@@ -990,7 +990,7 @@ public final class ZigBeeGateway {
                 return false;
             }
 
-            final ZigBeeAddress destination = getDestination(zigbeeApi, args[1], out);
+            final ZigBeeDestination destination = getDestination(zigbeeApi, args[1], out);
             if (destination == null) {
                 return false;
             }
@@ -1031,7 +1031,7 @@ public final class ZigBeeGateway {
                 return false;
             }
 
-            final ZigBeeAddress destination = getDestination(zigbeeApi, args[1], out);
+            final ZigBeeDestination destination = getDestination(zigbeeApi, args[1], out);
             if (destination == null) {
                 return false;
             }
@@ -1067,7 +1067,7 @@ public final class ZigBeeGateway {
                 return false;
             }
 
-            final ZigBeeAddress destination = getDestination(zigbeeApi, args[1], out);
+            final ZigBeeDestination destination = getDestination(zigbeeApi, args[1], out);
             if (destination == null) {
                 return false;
             }
@@ -1484,7 +1484,7 @@ public final class ZigBeeGateway {
                 return false;
             }
 
-            final ZigBeeAddress destination = getDestination(zigbeeApi, args[1], out);
+            final ZigBeeDestination destination = getDestination(zigbeeApi, args[1], out);
             if (destination == null) {
                 print("Device not found.", out);
                 return false;
@@ -1548,7 +1548,7 @@ public final class ZigBeeGateway {
                 return false;
             }
 
-            final ZigBeeAddress destination = getDestination(zigbeeApi, args[1], out);
+            final ZigBeeDestination destination = getDestination(zigbeeApi, args[1], out);
             if (destination == null) {
                 print("Device not found.", out);
                 return false;

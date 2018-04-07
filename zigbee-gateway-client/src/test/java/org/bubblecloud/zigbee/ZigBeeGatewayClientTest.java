@@ -7,7 +7,6 @@ import org.bubblecloud.zigbee.v3.Command;
 import org.junit.Assert;
 import org.bubblecloud.zigbee.v3.CommandListener;
 import org.bubblecloud.zigbee.v3.ZigBeeDevice;
-import org.bubblecloud.zigbee.v3.ZigBeeDeviceAddress;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -37,31 +36,31 @@ public class ZigBeeGatewayClientTest {
 
 
         final ReadAttributesCommand readAttributesCommand = new ReadAttributesCommand();
-        ZigBeeDeviceAddress address = new ZigBeeDeviceAddress(11022,11);
-        readAttributesCommand.setDestinationAddress(address);
+        readAttributesCommand.setDestinationAddress(11022);
+        readAttributesCommand.setDestinationEndpoint(11);
         readAttributesCommand.setClusterId(0);
         readAttributesCommand.setIdentifiers(new ArrayList<AttributeIdentifier>(Arrays.asList(new AttributeIdentifier())));
         client.sendCommand(readAttributesCommand);
 
         final ZigBeeDevice device = client.getDevices().get(3);
 
-        Assert.assertTrue(client.on(address).get().isSuccess());
+        Assert.assertTrue(client.on(device).get().isSuccess());
 
         Thread.sleep(1000);
 
-        Assert.assertTrue(client.color(address, 1.0, 0.0, 0.0, 1.0).get().isSuccess());
+        Assert.assertTrue(client.color(device, 1.0, 0.0, 0.0, 1.0).get().isSuccess());
 
         Thread.sleep(1000);
 
-        Assert.assertTrue(client.color(address, 0.0, 1.0, 0.0, 1.0).get().isSuccess());
+        Assert.assertTrue(client.color(device, 0.0, 1.0, 0.0, 1.0).get().isSuccess());
 
         Thread.sleep(1000);
 
-        Assert.assertTrue(client.color(address, 0.0, 0.0, 1.0, 1.0).get().isSuccess());
+        Assert.assertTrue(client.color(device, 0.0, 0.0, 1.0, 1.0).get().isSuccess());
 
         Thread.sleep(1000);
 
-        Assert.assertTrue(client.off(address).get().isSuccess());
+        Assert.assertTrue(client.off(device).get().isSuccess());
 
         /*final ReadAttributesCommand readAttributesCommand = new ReadAttributesCommand();
         readAttributesCommand.setDestinationAddress(11022);
