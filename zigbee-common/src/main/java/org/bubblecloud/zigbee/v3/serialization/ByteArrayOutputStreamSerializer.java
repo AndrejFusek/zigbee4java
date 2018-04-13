@@ -122,7 +122,11 @@ public class ByteArrayOutputStreamSerializer implements ZBSerializer {
                 append_int(l.intValue());
                 break;
             case IEEEAddress:
-                byte[] address = new ZToolAddress64(((Long) data).longValue()).getAddress();
+                byte[] address;
+                if(data instanceof Long)
+                    address = new ZToolAddress64(((Long) data).longValue()).getAddress();
+                else
+                    address = ((ZToolAddress64)data).getAddress();
                 for (int ii = 0; ii < 8; ii++) {
                     appendByte(address[7 - ii]);
                 }

@@ -327,8 +327,12 @@ public class ZToolPacketStream
                 return new ZDO_SIMPLE_DESC_RSP(payload);
             case ZToolCMD.ZDO_STATE_CHANGE_IND:
                 return new ZDO_STATE_CHANGE_IND(payload);
+            case ZToolCMD.ZDO_LEAVE_IND:
+                return new ZDO_LEAVE_IND(payload);
             case ZToolCMD.ZDO_TC_DEVICE_IND:
                 return new ZDO_TC_DEVICE_IND(payload);
+            case ZToolCMD.ZDO_PERMIT_JOIN_IND:
+                return new ZDO_PERMIT_JOIN_IND(payload);
             case ZToolCMD.ZDO_UNBIND_REQ_SRSP:
                 return new ZDO_UNBIND_REQ_SRSP(payload);
             case ZToolCMD.ZDO_UNBIND_RSP:

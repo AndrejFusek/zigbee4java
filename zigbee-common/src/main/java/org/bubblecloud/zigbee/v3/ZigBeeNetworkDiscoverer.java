@@ -61,7 +61,8 @@ public class ZigBeeNetworkDiscoverer implements CommandListener {
 
     /**
      * Discovers ZigBee network state.
-     * @param networkState the network state
+     *
+     * @param networkState     the network state
      * @param commandInterface the command interface
      */
     public ZigBeeNetworkDiscoverer(final ZigBeeNetworkState networkState,
@@ -168,11 +169,16 @@ public class ZigBeeNetworkDiscoverer implements CommandListener {
             final UserDescriptorResponse userDescriptorResponse = (UserDescriptorResponse) command;
             LOGGER.info("Received user descriptor response: " + userDescriptorResponse);
         }
+
+        if (command instanceof LeaveIndication) {
+            removeDevice(((LeaveIndication)command).getSourceAddress());
+        }
     }
 
 
     /**
      * Requests node IEEE address and associated nodes.
+     *
      * @param networkAddress the network address
      */
     private void requestNodeIeeeAddressAndAssociatedNodes(final int networkAddress) {
@@ -192,6 +198,7 @@ public class ZigBeeNetworkDiscoverer implements CommandListener {
 
     /**
      * Describe node at given network address.
+     *
      * @param networkAddress the network address
      */
     private void describeNode(final int networkAddress) {
@@ -211,6 +218,7 @@ public class ZigBeeNetworkDiscoverer implements CommandListener {
 
     /**
      * Discover node endpoints.
+     *
      * @param networkAddress the network address
      */
     private void requestNodeEndpoints(final int networkAddress) {
@@ -232,8 +240,9 @@ public class ZigBeeNetworkDiscoverer implements CommandListener {
 
     /**
      * Describe node endpoint
+     *
      * @param networkAddress the network address
-     * @param endpoint the endpoint
+     * @param endpoint       the endpoint
      */
     private void describeEndpoint(final int networkAddress, final int endpoint) {
         final String deviceIdentifier = networkAddress + "/" + endpoint;
@@ -253,9 +262,24 @@ public class ZigBeeNetworkDiscoverer implements CommandListener {
     }
 
     /**
+     * Remove all endpoints of device with network address equal to param shortAddress
+     * @param shortAddress 16 bit network address of removing device
+     */
+    private void removeDevice(int shortAddress) {
+        for (int i = 0; i < networkState.getDevices().size(); i++) {
+            ZigBeeDevice zigBeeDevice = networkState.getDevices().get(i);
+            if (zigBeeDevice.getNetworkAddress() == shortAddress) {
+                networkState.removeDevice(zigBeeDevice.getNetworkAddress(), zigBeeDevice.getEndpoint());
+                i--;
+            }
+        }
+    }
+
+    /**
      * Adds device to network state.
-     * @param ieeeAddressResponse the IEEE address response
-     * @param nodeDescriptorResponse the node descriptor response
+     *
+     * @param ieeeAddressResponse      the IEEE address response
+     * @param nodeDescriptorResponse   the node descriptor response
      * @param simpleDescriptorResponse the simple descriptor response
      */
     private void addOrUpdateDevice(final IeeeAddressResponse ieeeAddressResponse,

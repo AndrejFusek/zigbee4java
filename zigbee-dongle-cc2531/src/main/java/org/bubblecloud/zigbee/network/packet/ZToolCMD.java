@@ -963,9 +963,17 @@ public class ZToolCMD {
 	 */
 	public static final int ZDO_STATUS_ERROR_RSP = 0x45c3;
 	/**
+	 * Indication to inform the host of a device leaving the network.
+	 */
+	public static final int ZDO_LEAVE_IND = 0x45c9;
+	/**
 	 * ZDO Trust Center end device announce indication.
 	 */
 	public static final int ZDO_TC_DEVICE_IND = 0x45ca;
+	/**
+	 * ZDO Trust Center end device announce indication.
+	 */
+	public static final int ZDO_PERMIT_JOIN_IND = 0x45cb;
 	/**
 	 * This command is generated to request an UnBind
 	 */

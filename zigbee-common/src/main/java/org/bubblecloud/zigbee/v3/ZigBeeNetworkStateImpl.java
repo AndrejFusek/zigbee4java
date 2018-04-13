@@ -23,7 +23,7 @@ public class ZigBeeNetworkStateImpl implements ZigBeeNetworkState {
     /**
      * The groups in the ZigBee network.
      */
-    private Map<Integer, ZigBeeGroup> groups = new TreeMap<Integer, ZigBeeGroup>();
+    private final Map<Integer, ZigBeeGroup> groups = new TreeMap<Integer, ZigBeeGroup>();
     /**
      * The listeners of the ZigBee network.
      */
@@ -33,10 +33,12 @@ public class ZigBeeNetworkStateImpl implements ZigBeeNetworkState {
      * The network reset flag.
      */
     private final boolean resetNetwork;
+
     /**
      * The network state file path.
      */
-    private final String networkStateFilePath = "simple-network.json";
+    private final String DATA_FOLDER = "data/";
+    private final String NETWORK_STATE_FILE_PATH = DATA_FOLDER + "network.json";
 
     /**
      * Constructor which configures whether network shoule be reset at startup
@@ -51,7 +53,7 @@ public class ZigBeeNetworkStateImpl implements ZigBeeNetworkState {
      * Starts up network state.
      */
     public void startup() {
-        final File networkStateFile = new File(networkStateFilePath);
+        final File networkStateFile = new File(NETWORK_STATE_FILE_PATH);
         final boolean networkStateExists = networkStateFile.exists();
         if (!resetNetwork && networkStateExists) {
             LOGGER.info("Loading network state...");
@@ -74,7 +76,10 @@ public class ZigBeeNetworkStateImpl implements ZigBeeNetworkState {
     public void shutdown() {
         LOGGER.info("ZigBeeApi saving network state...");
         final ZigBeeNetworkStateSerializer serializer = new ZigBeeNetworkStateSerializer();
-        final File networkStateFile = new File(networkStateFilePath);
+        File folder = new File(DATA_FOLDER);
+        if(!folder.exists() || !folder.isDirectory())
+            folder.mkdir();
+        final File networkStateFile = new File(NETWORK_STATE_FILE_PATH);
         try {
             FileUtils.writeStringToFile(networkStateFile, serializer.serialize(this), false);
         } catch (final IOException e) {

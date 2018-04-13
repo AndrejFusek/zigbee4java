@@ -77,7 +77,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     public static final boolean RESEND_ONLY_EXCEPTION_DEFAULT = true;
     public static final String RESEND_ONLY_EXCEPTION_KEY = "zigbee.driver.cc2530.resend.exceptionally";
-    
+
     public static final int BOOTLOADER_MAGIC_BYTE_DEFAULT = 0xef;
     public static final String BOOTLOADER_MAGIC_BYTE_KEY = "zigbee.driver.cc2530.bl.magic.byte";
 
@@ -88,11 +88,11 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
     private final int RESEND_MAX_RETRY;
     private final boolean RESEND_ONLY_EXCEPTION;
     private final int BOOTLOADER_MAGIC_BYTE;
-    
+
     // Dongle startup options
     private final int STARTOPT_CLEAR_CONFIG = 0x00000001;
     private final int STARTOPT_CLEAR_STATE = 0x00000002;
-    
+
     // The dongle will automatically pickup a random, not conflicting PAN ID
     private final short AUTO_PANID = (short) 0xffff;
 
@@ -179,7 +179,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
             logger.trace("Using RESEND_MAX_RETRY set as DEFAULT {}", aux);
         }
         RESEND_ONLY_EXCEPTION = b;
-        
+
         aux = BOOTLOADER_MAGIC_BYTE_DEFAULT;
         try {
             aux = Integer.parseInt(System.getProperty(BOOTLOADER_MAGIC_BYTE_KEY));
@@ -188,7 +188,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
             logger.trace("Using BOOTLOADER_MAGIC_BYTE set as DEFAULT {}", aux);
         }
         BOOTLOADER_MAGIC_BYTE = aux;
-        
+
         state = DriverStatus.CLOSED;
         setSerialPort(port);
         setZigBeeNetwork((byte) channel, (short) pan);
@@ -207,21 +207,21 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
                 shutdown();
                 return false;
             }
-            
+
             // Now reset the dongle
             setState(DriverStatus.HARDWARE_OPEN);
             if (!dongleReset()) {
-            	logger.warn("Dongle reset failed. Assuming bootloader is running and sending magic byte {}.",
-            			String.format("0x%02x", BOOTLOADER_MAGIC_BYTE));
-            	if (!bootloaderGetOut(BOOTLOADER_MAGIC_BYTE)) {
-            		logger.warn("Attempt to get out from bootloader failed.");
-            		shutdown();
-            		return false;
-            	}
+                logger.warn("Dongle reset failed. Assuming bootloader is running and sending magic byte {}.",
+                        String.format("0x%02x", BOOTLOADER_MAGIC_BYTE));
+                if (!bootloaderGetOut(BOOTLOADER_MAGIC_BYTE)) {
+                    logger.warn("Attempt to get out from bootloader failed.");
+                    shutdown();
+                    return false;
+                }
             }
 
             setState(DriverStatus.HARDWARE_READY);
-            
+
             return true;
         } else {
             throw new IllegalStateException("Driver already opened, current status is:" + state);
@@ -237,8 +237,8 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
             logger.trace("Closing NETWORK");
             setState(DriverStatus.HARDWARE_READY);
         }
-        if (state == DriverStatus.HARDWARE_OPEN || state == DriverStatus.HARDWARE_READY || 
-        		state == DriverStatus.NETWORK_INITIALIZING) {
+        if (state == DriverStatus.HARDWARE_OPEN || state == DriverStatus.HARDWARE_READY ||
+                state == DriverStatus.NETWORK_INITIALIZING) {
             logger.trace("Closing HARDWARE");
             commandInterface.close();
             setState(DriverStatus.CREATED);
@@ -300,9 +300,9 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
                 commandInterface, new ZDO_STARTUP_FROM_APP(instantStartup), STARTUP_TIMEOUT
         );
         if (response == null) {
-        	return false;
+            return false;
         }
-        
+
         switch (response.Status) {
             case 0: {
                 logger.info("Initialized ZigBee network with existing network state.");
@@ -417,7 +417,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
             logger.error("Unable to reset dongle");
             return false;
         }
-        
+
         logger.debug("Setting channel to {}.", channel);
         if (!dongleSetChannel()) {
             logger.error("Unable to set CHANNEL for ZigBee Network");
@@ -433,36 +433,36 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
             logger.trace("PANID set");
         }
         if (extendedPanId != 0) {
-        	logger.debug("Setting Extended PAN ID to {}.", String.format("%08X", extendedPanId));
-        	if (!dongleSetExtendedPanId()) {
-        		logger.error("Unable to set EXT_PANID for ZigBee Network");
-        		return false;
-        	} else {
-        		logger.trace("EXT_PANID set");
-        	}
+            logger.debug("Setting Extended PAN ID to {}.", String.format("%08X", extendedPanId));
+            if (!dongleSetExtendedPanId()) {
+                logger.error("Unable to set EXT_PANID for ZigBee Network");
+                return false;
+            } else {
+                logger.trace("EXT_PANID set");
+            }
         }
         if (networkKey != null) {
-        	logger.debug("Setting NETWORK_KEY.");
-        	if (!dongleSetNetworkKey()) {
-        		logger.error("Unable to set NETWORK_KEY for ZigBee Network");
-        		return false;
-        	} else {
-        		logger.trace("NETWORK_KEY set");
-        	}
+            logger.debug("Setting NETWORK_KEY.");
+            if (!dongleSetNetworkKey()) {
+                logger.error("Unable to set NETWORK_KEY for ZigBee Network");
+                return false;
+            } else {
+                logger.trace("NETWORK_KEY set");
+            }
         }
         logger.debug("Setting Distribute Network Key to {}.", distributeNetworkKey);
         if (!dongleSetDistributeNetworkKey()) {
-        	logger.error("Unable to set DISTRIBUTE_NETWORK_KEY for ZigBee Network");
-        	return false;
+            logger.error("Unable to set DISTRIBUTE_NETWORK_KEY for ZigBee Network");
+            return false;
         } else {
-        	logger.trace("DISTRIBUTE_NETWORK_KEY set");
+            logger.trace("DISTRIBUTE_NETWORK_KEY set");
         }
         logger.debug("Setting Security Mode to {}.", securityMode);
         if (!dongleSetSecurityMode()) {
-        	logger.error("Unable to set SECURITY_MODE for ZigBee Network");
-        	return false;
+            logger.error("Unable to set SECURITY_MODE for ZigBee Network");
+            return false;
         } else {
-        	logger.trace("SECURITY_MODE set");
+            logger.trace("SECURITY_MODE set");
         }
         return true;
     }
@@ -501,22 +501,22 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
     }
 
     private boolean waitForNetwork() {
-    	long before = System.currentTimeMillis();
-    	boolean timedOut = false;
+        long before = System.currentTimeMillis();
+        boolean timedOut = false;
         synchronized (this) {
             while (state != DriverStatus.NETWORK_READY && state != DriverStatus.CLOSED && !timedOut) {
                 logger.debug("Waiting for network to become ready");
                 try {
-                	long now = System.currentTimeMillis();
-                	long timeout = STARTUP_TIMEOUT - (now - before);
-                	if (timeout > 0) {
-                		wait(timeout);
-                	} else {
-                		timedOut = true;
-                	}
+                    long now = System.currentTimeMillis();
+                    long timeout = STARTUP_TIMEOUT - (now - before);
+                    if (timeout > 0) {
+                        wait(timeout);
+                    } else {
+                        timedOut = true;
+                    }
                 } catch (InterruptedException ignored) {
                 }
-                
+
             }
             return isNetworkReady();
         }
@@ -567,7 +567,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     public <REQUEST extends ZToolPacket, RESPONSE extends ZToolPacket> RESPONSE sendLocalRequest(REQUEST request) {
         if (!waitForNetwork()) {
-        	return null;
+            return null;
         }
         RESPONSE result = (RESPONSE) sendSynchrouns(commandInterface, request);
         if (result == null) {
@@ -578,7 +578,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     public <REQUEST extends ZToolPacket, RESPONSE extends ZToolPacket> RESPONSE sendRemoteRequest(REQUEST request) {
         if (!waitForNetwork()) {
-        	return null;
+            return null;
         }
         RESPONSE result;
 
@@ -602,7 +602,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
     public ZDO_MGMT_LQI_RSP sendLQIRequest(ZDO_MGMT_LQI_REQ request) {
 
         if (!waitForNetwork()) {
-        	return null;
+            return null;
         }
         ZDO_MGMT_LQI_RSP result = null;
 
@@ -623,7 +623,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     public ZDO_IEEE_ADDR_RSP sendZDOIEEEAddressRequest(ZDO_IEEE_ADDR_REQ request) {
         if (!waitForNetwork()) {
-        	return null;
+            return null;
         }
         ZDO_IEEE_ADDR_RSP result = null;
 
@@ -644,7 +644,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     public ZDO_NODE_DESC_RSP sendZDONodeDescriptionRequest(ZDO_NODE_DESC_REQ request) {
         if (!waitForNetwork()) {
-        	return null;
+            return null;
         }
         ZDO_NODE_DESC_RSP result = null;
 
@@ -664,7 +664,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     public ZDO_POWER_DESC_RSP sendZDOPowerDescriptionRequest(ZDO_POWER_DESC_REQ request) {
         if (!waitForNetwork()) {
-        	return null;
+            return null;
         }
         ZDO_POWER_DESC_RSP result = null;
 
@@ -684,7 +684,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     public ZDO_ACTIVE_EP_RSP sendZDOActiveEndPointRequest(ZDO_ACTIVE_EP_REQ request) {
         if (!waitForNetwork()) {
-        	return null;
+            return null;
         }
         ZDO_ACTIVE_EP_RSP result = null;
 
@@ -705,7 +705,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     public ZDO_MGMT_PERMIT_JOIN_RSP sendPermitJoinRequest(ZDO_MGMT_PERMIT_JOIN_REQ request, boolean waitForCommand) {
         if (!waitForNetwork()) {
-        	return null;
+            return null;
         }
         ZDO_MGMT_PERMIT_JOIN_RSP result = null;
 
@@ -839,7 +839,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     public ZDO_SIMPLE_DESC_RSP sendZDOSimpleDescriptionRequest(ZDO_SIMPLE_DESC_REQ request) {
         if (!waitForNetwork()) {
-        	return null;
+            return null;
         }
         ZDO_SIMPLE_DESC_RSP result = null;
         waitAndLock3WayConversation(request);
@@ -857,23 +857,23 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
     }
 
     private boolean bootloaderGetOut(int magicByte) {
-    	final BlockingCommandReceiver waiter = new BlockingCommandReceiver(
+        final BlockingCommandReceiver waiter = new BlockingCommandReceiver(
                 ZToolCMD.SYS_RESET_RESPONSE,
                 commandInterface
         );
-    	
-    	try {
-			commandInterface.sendRaw(new int[]{magicByte});
-		} catch (IOException e) {
-			logger.error("Failed to send bootloader magic byte", e);
-		}
-    	
-    	SYS_RESET_RESPONSE response =
-                (SYS_RESET_RESPONSE) waiter.getCommand(RESET_TIMEOUT);        	
+
+        try {
+            commandInterface.sendRaw(new int[]{magicByte});
+        } catch (IOException e) {
+            logger.error("Failed to send bootloader magic byte", e);
+        }
+
+        SYS_RESET_RESPONSE response =
+                (SYS_RESET_RESPONSE) waiter.getCommand(RESET_TIMEOUT);
 
         return response != null;
     }
-    
+
     private boolean dongleReset() {
         final BlockingCommandReceiver waiter = new BlockingCommandReceiver(
                 ZToolCMD.SYS_RESET_RESPONSE,
@@ -889,30 +889,30 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
         SYS_RESET_RESPONSE response =
                 (SYS_RESET_RESPONSE) waiter.getCommand(RESET_TIMEOUT);
-        
+
         return response != null;
     }
-        
+
     private boolean dongleSetStartupOption(int mask) {
-    	if ((mask & ~(STARTOPT_CLEAR_CONFIG | STARTOPT_CLEAR_STATE)) != 0) {
-        	logger.warn("Invalid ZCD_NV_STARTUP_OPTION mask {}.", String.format("%08X", mask));
-        	return false;
-    	}
-    	
+        if ((mask & ~(STARTOPT_CLEAR_CONFIG | STARTOPT_CLEAR_STATE)) != 0) {
+            logger.warn("Invalid ZCD_NV_STARTUP_OPTION mask {}.", String.format("%08X", mask));
+            return false;
+        }
+
         ZB_WRITE_CONFIGURATION_RSP response;
         response = (ZB_WRITE_CONFIGURATION_RSP) sendSynchrouns(
                 commandInterface,
-        		new ZB_WRITE_CONFIGURATION(
-        				ZB_WRITE_CONFIGURATION.CONFIG_ID.ZCD_NV_STARTUP_OPTION,
-        				new int[]{mask}
-        				)
-        		);
+                new ZB_WRITE_CONFIGURATION(
+                        ZB_WRITE_CONFIGURATION.CONFIG_ID.ZCD_NV_STARTUP_OPTION,
+                        new int[]{mask}
+                )
+        );
 
         if (response == null || response.Status != 0) {
-        	logger.warn("Couldn't set ZCD_NV_STARTUP_OPTION mask {}", String.format("%08X", mask));
-        	return false;
+            logger.warn("Couldn't set ZCD_NV_STARTUP_OPTION mask {}", String.format("%08X", mask));
+            return false;
         } else {
-        	logger.trace("Set ZCD_NV_STARTUP_OPTION mask {}", String.format("%08X", mask));
+            logger.trace("Set ZCD_NV_STARTUP_OPTION mask {}", String.format("%08X", mask));
         }
 
         return true;
@@ -930,11 +930,11 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
     private boolean dongleSetChannel(int[] channelMask) {
         logger.trace(
                 "Setting the channel to {}{}{}{}", new Object[]{
-                Integer.toHexString(channelMask[0]),
-                Integer.toHexString(channelMask[1]),
-                Integer.toHexString(channelMask[2]),
-                Integer.toHexString(channelMask[3])
-        }
+                        Integer.toHexString(channelMask[0]),
+                        Integer.toHexString(channelMask[1]),
+                        Integer.toHexString(channelMask[2]),
+                        Integer.toHexString(channelMask[3])
+                }
         );
 
         ZB_WRITE_CONFIGURATION_RSP response =
@@ -992,7 +992,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
         return response != null && response.Status == 0;
     }
-    
+
     private boolean dongleSetExtendedPanId() {
         ZB_WRITE_CONFIGURATION_RSP response =
                 (ZB_WRITE_CONFIGURATION_RSP) sendSynchrouns(
@@ -1014,7 +1014,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
         return response != null && response.Status == 0;
     }
-    
+
     private boolean dongleSetNetworkKey() {
         ZB_WRITE_CONFIGURATION_RSP response =
                 (ZB_WRITE_CONFIGURATION_RSP) sendSynchrouns(
@@ -1042,9 +1042,9 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
                         )
                 );
 
-        return response != null && response.Status == 0;    	
+        return response != null && response.Status == 0;
     }
-    
+
     private boolean dongleSetDistributeNetworkKey() {
         ZB_WRITE_CONFIGURATION_RSP response =
                 (ZB_WRITE_CONFIGURATION_RSP) sendSynchrouns(
@@ -1059,7 +1059,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
         return response != null && response.Status == 0;
     }
-    
+
     private boolean dongleSetSecurityMode() {
         ZB_WRITE_CONFIGURATION_RSP response =
                 (ZB_WRITE_CONFIGURATION_RSP) sendSynchrouns(
@@ -1173,7 +1173,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     public AF_REGISTER_SRSP sendAFRegister(AF_REGISTER request) {
         if (!waitForNetwork()) {
-        	return null;
+            return null;
         }
 
         AF_REGISTER_SRSP response = (AF_REGISTER_SRSP) sendSynchrouns(commandInterface, request);
@@ -1182,7 +1182,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     public AF_DATA_CONFIRM sendAFDataRequest(AF_DATA_REQUEST request) {
         if (!waitForNetwork()) {
-        	return null;
+            return null;
         }
         AF_DATA_CONFIRM result = null;
 
@@ -1210,7 +1210,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     public ZDO_BIND_RSP sendZDOBind(ZDO_BIND_REQ request) {
         if (!waitForNetwork()) {
-        	return null;
+            return null;
         }
         ZDO_BIND_RSP result = null;
 
@@ -1229,7 +1229,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     public ZDO_UNBIND_RSP sendZDOUnbind(ZDO_UNBIND_REQ request) {
         if (!waitForNetwork()) {
-        	return null;
+            return null;
         }
         ZDO_UNBIND_RSP result = null;
 
@@ -1249,6 +1249,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     /**
      * Removes an Application Framework message listener that was previously added with the addAFMessageListener method
+     *
      * @param listener a class that implements the {@link ApplicationFrameworkMessageListener} interface
      * @return true if the listener was added
      */
@@ -1276,13 +1277,14 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     /**
      * Adds an Application Framework message listener
+     *
      * @param listener a class that implements the {@link ApplicationFrameworkMessageListener} interface
      * @return true if the listener was added
      */
     public boolean addAFMessageListener(ApplicationFrameworkMessageListener listener) {
         synchronized (messageListeners) {
             if (messageListeners.contains(listener)) {
-                 return true;
+                return true;
             }
         }
         if (messageListeners.isEmpty() && isHardwareReady()) {
@@ -1322,6 +1324,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     /**
      * Gets the extended PAN ID
+     *
      * @return the PAN ID or -1 on failure
      * @since 0.2.0
      */
@@ -1334,8 +1337,8 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
         int[] result = getDeviceInfo(ZB_GET_DEVICE_INFO.DEV_INFO_TYPE.EXT_PAN_ID);
 
         if (result == null) {
-        	 // luckily -1 (aka 0xffffffffffffffffL) is not a valid extended PAN ID value
-            return -1; 
+            // luckily -1 (aka 0xffffffffffffffffL) is not a valid extended PAN ID value
+            return -1;
         } else {
             return Integers.longFromInts(result, 7, 0);
         }
@@ -1343,7 +1346,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     /**
      * Gets the IEEE address of our node on the network
-     * 
+     *
      * @return the IEEE address as a long or -1 on failure
      * @since 0.2.0
      */
@@ -1370,7 +1373,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     /**
      * Gets the current PAN ID
-     * 
+     *
      * @return current PAN ID as an int or -1 on failure
      * @since 0.2.0
      */
@@ -1396,7 +1399,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
     /**
      * Gets the current ZigBee channe number
-     * 
+     *
      * @return the current channel as an int, or -1 on failure
      * @since 0.2.0
      */
@@ -1637,8 +1640,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
                 if (newDevice(new AF_REGISTER(Byte.valueOf(this.ep[i] + ""), this.prof[i], Short.valueOf(this.dev[i] + ""), Byte.valueOf(this.ver[i] + ""), input, output))) {
                     logger.debug("Custom device {} registered at endpoint {}", this.dev[i], this.ep[i]);
-                }
-                else {
+                } else {
                     logger.debug("Custom device {} registration failed at endpoint {}", this.dev[i], this.ep[i]);
                 }
             }
@@ -1661,7 +1663,6 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
     /**
      * Listens for any announce messages and processes the state of the new
      * device before making it ready on the network.
-     *
      */
     private class AnnounceListenerFilter implements AsynchronousCommandListener {
 
@@ -1673,7 +1674,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
 
         public void receivedAsynchronousCommand(ZToolPacket packet) {
             if (packet.isError()) {
-            	return;
+                return;
             }
             if (packet.getCMD().get16BitValue() == ZToolCMD.ZDO_END_DEVICE_ANNCE_IND) {
                 logger.debug("Received announce message {} value is {}", packet.getClass(), packet);
@@ -1682,11 +1683,11 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
                     l.announce(annunce.SrcAddr, annunce.IEEEAddr, annunce.NwkAddr, annunce.Capabilities);
                 }
             } else if (packet.getCMD().get16BitValue() == ZToolCMD.ZDO_TC_DEVICE_IND) {
-                    logger.debug("Received TC announce message {} value is {}", packet.getClass(), packet);
-                    ZDO_TC_DEVICE_IND annunce = (ZDO_TC_DEVICE_IND) packet;
-                    for (AnnounceListener l : listners) {
-                        l.announce(annunce.SrcAddr, annunce.IEEEAddr, annunce.NwkAddr, 0);
-                    }
+                logger.debug("Received TC announce message {} value is {}", packet.getClass(), packet);
+                ZDO_TC_DEVICE_IND annunce = (ZDO_TC_DEVICE_IND) packet;
+                for (AnnounceListener l : listners) {
+                    l.announce(annunce.SrcAddr, annunce.IEEEAddr, annunce.NwkAddr, 0);
+                }
             } else if (packet.getCMD().get16BitValue() == ZToolCMD.ZDO_STATE_CHANGE_IND) {
                 try {
                     ZDO_STATE_CHANGE_IND p = ((ZDO_STATE_CHANGE_IND) packet);
@@ -1731,6 +1732,9 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
                 } catch (Exception ex) {
                     // ignored
                 }
+            } else if (packet.getCMD().get16BitValue() == ZToolCMD.ZDO_PERMIT_JOIN_IND) {
+                logger.warn("Not implemented reaction to command ZDO_PERMIT_JOIN_IND");
+                //TODO permit join indication
             }
         }
 
@@ -1759,7 +1763,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
          */
         public void receivedAsynchronousCommand(ZToolPacket packet) {
             if (packet.isError()) {
-            	return;
+                return;
             }
             if (packet.getCMD().get16BitValue() == ZToolCMD.AF_INCOMING_MSG) {
                 AF_INCOMING_MSG msg = (AF_INCOMING_MSG) packet;

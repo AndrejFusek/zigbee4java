@@ -4,10 +4,12 @@ import org.apache.commons.lang.StringUtils;
 import org.bubblecloud.zigbee.api.ZigBeeApiConstants;
 import org.bubblecloud.zigbee.api.cluster.Cluster;
 import org.bubblecloud.zigbee.api.cluster.impl.api.core.Attribute;
+import org.bubblecloud.zigbee.api.cluster.impl.attribute.Attributes;
+import org.bubblecloud.zigbee.api.cluster.impl.security_safety.IASZoneCluster;
 import org.bubblecloud.zigbee.util.IEEEAddress;
 import org.bubblecloud.zigbee.v3.model.Status;
-import org.bubblecloud.zigbee.v3.model.ZigBeeType;
 import org.bubblecloud.zigbee.v3.model.ZToolAddress64;
+import org.bubblecloud.zigbee.v3.model.ZigBeeType;
 import org.bubblecloud.zigbee.v3.zcl.field.Unsigned16BitInteger;
 import org.bubblecloud.zigbee.v3.zcl.protocol.command.general.ConfigureReportingResponseCommand;
 import org.bubblecloud.zigbee.v3.zcl.protocol.command.general.ReadAttributesResponseCommand;
@@ -1665,37 +1667,17 @@ public final class ZigBeeGateway {
                 return false;
             }
 
-//            int clusterId = org.bubblecloud.zigbee.api.cluster.impl.api.security_safety.IASZone.ID;
-//            int attributeId = Attributes.IAS_CIE_ADDRESS.getId();
-//
-//            final Cluster cluster = device.getCluster(clusterId);
-//            if (cluster == null) {
-//                print("Cluster not found.", out);
-//                return false;
-//            }
-//
-//            final Attribute attribute = cluster.getAttribute(attributeId);
-//            if (attribute == null) {
-//                print("Attribute not found.", out);
-//                return false;
-//            }
-//
-//            if(!attribute.isWritable()) {
-//                print(attribute.getName() + " is not writable", out);
-//                return true;
-//            }
-//
-//            try {
-//                attribute.setValue(zigbeeApi.getZigBeeNetworkManager().getIeeeAddress());
-//                print("CIE address set to: " + IEEEAddress.toColonNotation(zigbeeApi.getZigBeeNetworkManager().getIeeeAddress()), out);
-//                print("CIE address verification read: " + IEEEAddress.toColonNotation((Long)attribute.getValue()), out);
-//            }  catch (Exception e) {
-//                print("Failed to set CIE address.", out);
-//                e.printStackTrace();
-//            }
-//
-//            return true;
-            throw new UnsupportedOperationException();
+            long myIeeeAddr = zigbeeApi.getDevices().get(0).getIeeeAddress();
+
+            try {
+                zigbeeApi.write(device, IASZoneCluster.ID, Attributes.IAS_CIE_ADDRESS.getId(), myIeeeAddr);
+                print("CIE address set to: " + IEEEAddress.toColonNotation(myIeeeAddr), out);
+            }  catch (Exception e) {
+                print("Failed to set CIE address.", out);
+                e.printStackTrace();
+            }
+
+            return true;
         }
     }
 

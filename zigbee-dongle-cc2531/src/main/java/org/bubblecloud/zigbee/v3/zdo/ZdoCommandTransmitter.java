@@ -195,8 +195,20 @@ public class ZdoCommandTransmitter implements AsynchronousCommandListener {
 
     @Override
     public void receivedAsynchronousCommand(ZToolPacket packet) {
-        if (packet.isError()) return;
+        if (packet.isError()) {
+            return;
+        }
+        if(packet.getCMD().get16BitValue() == ZToolCMD.ZDO_LEAVE_IND) {
+            final ZDO_LEAVE_IND message = (ZDO_LEAVE_IND) packet;
+            final LeaveIndication command = new LeaveIndication();
+            command.setSourceAddress(message.srcAddr.get16BitValue());
+            command.setIeeeAddress(message.extAddr.getLong());
+            command.setRequest(message.request);
+            command.setRemove(message.remove);
+            command.setRejoin(message.rejoin);
 
+            notifyCommandReceived(command);
+        }
         if (packet.getCMD().get16BitValue() == ZToolCMD.ZDO_SIMPLE_DESC_RSP) {
             final ZDO_SIMPLE_DESC_RSP message = (ZDO_SIMPLE_DESC_RSP) packet;
 
