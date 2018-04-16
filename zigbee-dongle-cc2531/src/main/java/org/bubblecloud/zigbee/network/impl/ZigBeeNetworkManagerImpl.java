@@ -113,6 +113,7 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
     private final ArrayList<ApplicationFrameworkMessageListener> messageListeners = new ArrayList<ApplicationFrameworkMessageListener>();
     private final AFMessageListenerFilter afMessageListenerFilter = new AFMessageListenerFilter(messageListeners);
 
+    private final Set<PermitJoinListener> permitJoinListeners = new HashSet<PermitJoinListener>();
     /**
      * The cached current IEEE address read from dongle.
      */
@@ -1171,6 +1172,14 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
         return result;
     }
 
+    public boolean addPermitJoinListener(PermitJoinListener newListener) {
+        return permitJoinListeners.add(newListener);
+    }
+
+    public boolean removePermitJoinListener(PermitJoinListener listener) {
+        return permitJoinListeners.remove(listener);
+    }
+
     public AF_REGISTER_SRSP sendAFRegister(AF_REGISTER request) {
         if (!waitForNetwork()) {
             return null;
@@ -1733,8 +1742,9 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
                     // ignored
                 }
             } else if (packet.getCMD().get16BitValue() == ZToolCMD.ZDO_PERMIT_JOIN_IND) {
-                logger.warn("Not implemented reaction to command ZDO_PERMIT_JOIN_IND");
-                //TODO permit join indication
+                ZDO_PERMIT_JOIN_IND indication = (ZDO_PERMIT_JOIN_IND) packet;
+                for(PermitJoinListener listener : permitJoinListeners)
+                    listener.changed(indication.enabled);
             }
         }
 
@@ -1785,7 +1795,9 @@ public class ZigBeeNetworkManagerImpl implements ZigBeeNetworkManager {
                     try {
                         l.notify(msg);
                     } catch (final Exception e) {
-                        LOGGER.error("Error AF message listener notify.", e);
+                        LOGGER.error("Error AF message listener notify - from {} and cluster {} to end point {}. Data: {}",
+                                msg.getSrcAddr(), msg.getClusterId(),
+                                msg.getDstEndpoint(), msg, e);
                     }
                 }
 

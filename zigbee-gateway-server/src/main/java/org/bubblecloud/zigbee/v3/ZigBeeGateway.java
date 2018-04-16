@@ -6,15 +6,15 @@ import org.bubblecloud.zigbee.api.cluster.Cluster;
 import org.bubblecloud.zigbee.api.cluster.impl.api.core.Attribute;
 import org.bubblecloud.zigbee.api.cluster.impl.attribute.Attributes;
 import org.bubblecloud.zigbee.api.cluster.impl.security_safety.IASZoneCluster;
+import org.bubblecloud.zigbee.network.PermitJoinListener;
 import org.bubblecloud.zigbee.util.IEEEAddress;
 import org.bubblecloud.zigbee.v3.model.Status;
 import org.bubblecloud.zigbee.v3.model.ZToolAddress64;
 import org.bubblecloud.zigbee.v3.model.ZigBeeType;
+import org.bubblecloud.zigbee.v3.zcl.field.AttributeIdentifier;
+import org.bubblecloud.zigbee.v3.zcl.field.ReadAttributeStatusRecord;
 import org.bubblecloud.zigbee.v3.zcl.field.Unsigned16BitInteger;
-import org.bubblecloud.zigbee.v3.zcl.protocol.command.general.ConfigureReportingResponseCommand;
-import org.bubblecloud.zigbee.v3.zcl.protocol.command.general.ReadAttributesResponseCommand;
-import org.bubblecloud.zigbee.v3.zcl.protocol.command.general.ReportAttributesCommand;
-import org.bubblecloud.zigbee.v3.zcl.protocol.command.general.WriteAttributesResponseCommand;
+import org.bubblecloud.zigbee.v3.zcl.protocol.command.general.*;
 import org.bubblecloud.zigbee.v3.zcl.protocol.command.groups.GetGroupMembershipResponseCommand;
 import org.bubblecloud.zigbee.v3.zcl.protocol.command.groups.ViewGroupResponseCommand;
 
@@ -57,7 +57,7 @@ public final class ZigBeeGateway {
     /**
      * Constructor which configures ZigBee API and constructs commands.
      *
-     * @param dongle the dongle
+     * @param dongle       the dongle
      * @param resetNetwork whether network is to be reset
      */
     public ZigBeeGateway(final ZigBeeDongle dongle, final boolean resetNetwork) {
@@ -76,24 +76,24 @@ public final class ZigBeeGateway {
         commands.put("membershiplist", new MembershipListCommand());
 
         commands.put("quit", new QuitCommand());
-		commands.put("help", new HelpCommand());
-		commands.put("desc", new DescribeCommand());
+        commands.put("help", new HelpCommand());
+        commands.put("desc", new DescribeCommand());
         commands.put("descriptor", new SetDescriptorCommand());
-		commands.put("bind", new BindCommand());
-		commands.put("unbind", new UnbindCommand());
-		commands.put("on", new OnCommand());
-		commands.put("off", new OffCommand());
-		commands.put("normal", new InitNormalOpCommand());
-		commands.put("color", new ColorCommand());
-		commands.put("level", new LevelCommand());
-		commands.put("listen", new ListenCommand());
-		commands.put("unlisten", new UnlistenCommand());
-		commands.put("subscribe", new SubscribeCommand());
-		commands.put("unsubscribe", new UnsubscribeCommand());
-		commands.put("read", new ReadCommand());
-		commands.put("write", new WriteCommand());
-		commands.put("join", new JoinCommand());
-		commands.put("lqi", new LqiCommand());
+        commands.put("bind", new BindCommand());
+        commands.put("unbind", new UnbindCommand());
+        commands.put("on", new OnCommand());
+        commands.put("off", new OffCommand());
+        commands.put("normal", new InitNormalOpCommand());
+        commands.put("color", new ColorCommand());
+        commands.put("level", new LevelCommand());
+        commands.put("listen", new ListenCommand());
+        commands.put("unlisten", new UnlistenCommand());
+        commands.put("subscribe", new SubscribeCommand());
+        commands.put("unsubscribe", new UnsubscribeCommand());
+        commands.put("read", new ReadCommand());
+        commands.put("write", new WriteCommand());
+        commands.put("join", new JoinCommand());
+        commands.put("lqi", new LqiCommand());
         commands.put("warn", new WarnCommand());
         commands.put("squawk", new SquawkCommand());
         commands.put("lock", new DoorLockCommand());
@@ -103,7 +103,7 @@ public final class ZigBeeGateway {
         zigBeeApi = new ZigBeeApiDongleImpl(dongle, resetNetwork);
     }
 
-	/**
+    /**
      * Starts this console application
      */
     public void start() {
@@ -137,11 +137,77 @@ public final class ZigBeeGateway {
         zigBeeApi.getNetwork().addCommandListener(new CommandListener() {
             @Override
             public void commandReceived(Command command) {
-                if (printAttributeReports && command instanceof ReportAttributesCommand) {
-                    print("Received: " + command.toString(), System.out);
+                if (command instanceof ReportAttributesCommand) {
+                    if(printAttributeReports) {
+                        print("Received: " + command.toString(), System.out);
+                    }
+                }
+                else if (command instanceof ReadAttributesCommand) {
+                    if(printAttributeReports) {
+                        print("Received: " + command.toString(), System.out);
+                    }
+                    ReadAttributesCommand readCommand = (ReadAttributesCommand) command;
+                    final int remoteAddress = readCommand.getSourceAddress();
+                    final int remoteEndPoint = readCommand.getSourceEnpoint();
+                    final byte transactionId = readCommand.getTransactionId();
+                    final int clusterId = readCommand.getClusterId();
+                    List<AttributeIdentifier> attributeIdentifiers = readCommand.getIdentifiers();
+
+                    if (clusterId == ZigBeeApiConstants.CLUSTER_ID_TIME) {
+                        final ReadAttributesResponseCommand response = new ReadAttributesResponseCommand();
+                        response.setDestinationAddress(remoteAddress);
+                        response.setDestinationEndpoint(remoteEndPoint);
+                        response.setTransactionId(transactionId);
+                        response.setClusterId(clusterId);
+                        List<ReadAttributeStatusRecord> records = new ArrayList<ReadAttributeStatusRecord>();
+                        for (AttributeIdentifier identifier : attributeIdentifiers) {
+                            if (identifier.getAttributeIdentifier() == Attributes.TIME.getId()) {
+                                ReadAttributeStatusRecord record = new ReadAttributeStatusRecord();
+                                record.setAttributeIdentifier(identifier.getAttributeIdentifier());
+                                record.setAttributeDataType(Attributes.TIME.getZigBeeType().getId());
+                                record.setStatus(Status.SUCCESS.id);
+
+                                Calendar rightNow = Calendar.getInstance();
+                                long hour = rightNow.get(Calendar.HOUR_OF_DAY);
+                                long minute = rightNow.get(Calendar.MINUTE);
+                                long second = rightNow.get(Calendar.SECOND);
+                                long time = (hour * 60 + minute)*60 + second;
+                                print(String.format("Sending time %d:%02d:%02d (long %d).", hour, minute, second, time), System.out);
+                                record.setAttributeValue(time);
+                                records.add(record);
+                            }
+                        }
+                        response.setRecords(records);
+
+                        new Thread(new Runnable() {
+                            public void run() {
+                                try {
+                                    int code = zigBeeApi.getNetwork().sendCommand(response);
+                                } catch (ZigBeeException e) {
+                                    print("Sending attribute failed.", System.out);
+                                    e.printStackTrace();
+                                }
+                            }
+                        }).start();
+                    }
+                }
+                else {
+                    if(printAttributeReports) {
+                        print("R_c__v_d: " + command.toString(), System.out);
+                    }
                 }
             }
         });
+
+        if (zigBeeApi.getNetwork() instanceof ZigBeeDongleTiCc2531Impl) {
+            ((ZigBeeDongleTiCc2531Impl) zigBeeApi.getNetwork()).addPermitJoinListener(new PermitJoinListener() {
+                @Override
+                public void changed(boolean enabled) {
+                    if (printAttributeReports)
+                        print("Permit join " + (enabled ? "enabled" : "disabled") + ".", System.out);
+                }
+            });
+        }
 
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
@@ -173,8 +239,9 @@ public final class ZigBeeGateway {
 
     /**
      * Processes text input line.
+     *
      * @param inputLine the input line
-     * @param out the output stream
+     * @param out       the output stream
      */
     public void processInputLine(final String inputLine, final PrintStream out) {
         if (inputLine.length() == 0) {
@@ -186,8 +253,9 @@ public final class ZigBeeGateway {
 
     /**
      * Processes input arguments.
+     *
      * @param args the input arguments
-     * @param out the output stream
+     * @param out  the output stream
      */
     public void processArgs(final String[] args, final PrintStream out) {
         try {
@@ -208,10 +276,11 @@ public final class ZigBeeGateway {
 
     /**
      * Executes command.
+     *
      * @param zigbeeApi the ZigBee API
-     * @param command the command
-     * @param args the arguments including the command
-     * @param out the output stream
+     * @param command   the command
+     * @param args      the arguments including the command
+     * @param out       the output stream
      */
     private void executeCommand(final ZigBeeApiDongleImpl zigbeeApi, final String command, final String[] args, final PrintStream out) {
         final ConsoleCommand consoleCommand = commands.get(command);
@@ -247,7 +316,7 @@ public final class ZigBeeGateway {
         try {
             final BufferedReader bufferRead = new BufferedReader(new InputStreamReader(System.in));
             return bufferRead.readLine();
-        } catch(final IOException e) {
+        } catch (final IOException e) {
             return null;
         }
     }
@@ -255,25 +324,27 @@ public final class ZigBeeGateway {
 
     /**
      * Gets device summary.
+     *
      * @param device the device
      * @return the summary
      */
     private String getDeviceSummary(final ZigBeeDevice device) {
         return StringUtils.leftPad(Integer.toString(device.getNetworkAddress()), 10) + "/"
                 + StringUtils.rightPad(Integer.toString(device.getEndpoint()), 3)
-                + " " + StringUtils.rightPad(device.getLabel()!= null ? device.getLabel() : "<label>", 20)
+                + " " + StringUtils.rightPad(device.getLabel() != null ? device.getLabel() : "<label>", 20)
                 + " " + ZigBeeApiConstants.getDeviceName(device.getProfileId(),
                 device.getDeviceType(), device.getDeviceId());
     }
 
     /**
      * Gets destination by device identifier or group ID.
-     * @param zigbeeApi the ZigBee API
+     *
+     * @param zigbeeApi             the ZigBee API
      * @param destinationIdentifier the device identifier or group ID
      * @return the device
      */
     private ZigBeeDestination getDestination(final ZigBeeApiDongleImpl zigbeeApi, final String destinationIdentifier
-            ,final PrintStream out) {
+            , final PrintStream out) {
         final ZigBeeDevice device = getDevice(zigbeeApi, destinationIdentifier);
 
         if (device != null) {
@@ -300,7 +371,8 @@ public final class ZigBeeGateway {
 
     /**
      * Gets device by device identifier.
-     * @param zigbeeApi the ZigBee API
+     *
+     * @param zigbeeApi        the ZigBee API
      * @param deviceIdentifier the device identifier
      * @return the device
      */
@@ -322,21 +394,24 @@ public final class ZigBeeGateway {
     private interface ConsoleCommand {
         /**
          * Get command description.
+         *
          * @return the command description
          */
         String getDescription();
 
         /**
          * Get command syntax.
+         *
          * @return the command syntax
          */
         String getSyntax();
 
         /**
          * Processes console command.
+         *
          * @param zigbeeApi the ZigBee API
-         * @param args the command arguments
-         * @param out the output PrintStream
+         * @param args      the command arguments
+         * @param out       the output PrintStream
          * @return true if command syntax was correct.
          */
         boolean process(final ZigBeeApiDongleImpl zigbeeApi, final String[] args, PrintStream out) throws Exception;
@@ -352,12 +427,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Quits console.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "quit";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -377,12 +454,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "View command help.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "help [command]";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -422,12 +501,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Lists devices.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "devicelist";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -450,12 +531,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Lists groups in gateway network state.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "grouplist";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -478,12 +561,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Describes a device.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "desc DEVICEID";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -501,7 +586,7 @@ public final class ZigBeeGateway {
             print("IEEE Address     : " + IEEEAddress.toHex(device.getIeeeAddress()), out);
             print("Network Address  : " + device.getNetworkAddress(), out);
             print("Endpoint         : " + device.getEndpoint(), out);
-            print("Device Profile   : " + ZigBeeApiConstants.getProfileName(device.getProfileId())+ String.format("  (0x%04X)", device.getProfileId()), out);
+            print("Device Profile   : " + ZigBeeApiConstants.getProfileName(device.getProfileId()) + String.format("  (0x%04X)", device.getProfileId()), out);
             print("Device Category  : " + ZigBeeApiConstants.getCategoryDeviceName(device.getProfileId(), device.getDeviceId()) + String.format("  (0x%04X)", device.getDeviceId()), out);
             print("Device Type      : " + ZigBeeApiConstants.getDeviceName(device.getProfileId(), device.getDeviceType(), device.getDeviceId()) + String.format("  (0x%04X)", device.getDeviceType()), out);
             print("Device Version   : " + device.getDeviceVersion(), out);
@@ -515,9 +600,10 @@ public final class ZigBeeGateway {
 
         /**
          * Prints out clusters.
-         * @param device the device
+         *
+         * @param device     the device
          * @param clusterIds the cluster IDs
-         * @param out the output print stream
+         * @param out        the output print stream
          */
         private void printClusters(final ZigBeeDevice device, final int[] clusterIds, PrintStream out) {
             for (int clusterId : clusterIds) {
@@ -551,12 +637,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Binds a device to another device.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "bind [SOURCEDEVICE] [DESTINATIONDEVICE] [CLUSTERID]";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -593,12 +681,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Unbinds a device from another device.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "unbind [SOURCEDEVICE] [DESTINATIONDEVICE] [CLUSTERID]";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -635,12 +725,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Switches device on.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "on DEVICEID/DEVICELABEL/GROUPID";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -671,12 +763,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Switches device off.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "off DEVICEID/DEVICELABEL/GROUPID";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -706,12 +800,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Init normal operation mode.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "normal DEVICEID/DEVICELABEL/GROUPID";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -741,12 +837,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Changes light color.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "color DEVICEID RED GREEN BLUE";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -794,12 +892,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Sets device label.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "devicelabel DEVICEID DEVICELABEL";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -830,12 +930,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Adds group to gateway network state.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "groupadd GROUPID GROUPLABEL";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -869,12 +971,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Removes device from gateway network state.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "deviceremove DEVICE";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -903,12 +1007,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Removes group from gateway network state.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "groupremove GROUP";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -941,12 +1047,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Sets device user descriptor to 0-16 US-ASCII character string.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "descriptor DEVICEID DEVICELABEL";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -978,12 +1086,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Changes device level for example lamp brightness, where LEVEL is between 0 and 1.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "level DEVICEID LEVEL";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -1019,12 +1129,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Locks door.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "lock DEVICEID PINCODE";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -1055,12 +1167,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Unlocks door.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "unlock DEVICEID PINCODE";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -1091,12 +1205,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Listen to attribute reports.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "listen";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -1123,12 +1239,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Unlisten from attribute reports.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "unlisten";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -1155,12 +1273,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Subscribe to attribute reports.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "subscribe [DEVICE] [CLUSTER] [ATTRIBUTE] [MIN-INTERVAL] [MAX-INTERVAL] [REPORTABLE-CHANGE]";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -1236,12 +1356,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Unsubscribe from attribute reports.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "unsubscribe [DEVICE] [CLUSTER] [ATTRIBUTE] [REPORTABLE-CHANGE]";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -1301,12 +1423,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Read an attribute.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "read [DEVICE] [CLUSTER] [ATTRIBUTE]";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -1366,12 +1490,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Write an attribute.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "write [DEVICE] [CLUSTER] [ATTRIBUTE] [VALUE]";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -1433,12 +1559,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "List LQI neighbours list.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "lqi";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -1603,12 +1731,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Enable or diable network join.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "join [enable|disable]";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -1618,16 +1748,16 @@ public final class ZigBeeGateway {
             }
 
             final boolean join;
-            if(args[1].toLowerCase().equals("enable")) {
-            	join = true;
-            } else if(args[1].toLowerCase().equals("disable")) {
+            if (args[1].toLowerCase().equals("enable")) {
+                join = true;
+            } else if (args[1].toLowerCase().equals("disable")) {
                 join = false;
             } else {
                 return false;
             }
 
             zigbeeApi.permitJoin(join);
-            if(args[1].toLowerCase().equals("enable")) {
+            if (args[1].toLowerCase().equals("enable")) {
                 out.println("Permit join enable broadcast success.");
             } else {
                 out.println("Permit join disable broadcast success.");
@@ -1648,12 +1778,14 @@ public final class ZigBeeGateway {
             return "Enrolls IAS Zone device to this CIE device by setting own address as CIE address to the " +
                     " IAS Zone device.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "enroll DEVICEID";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -1672,7 +1804,7 @@ public final class ZigBeeGateway {
             try {
                 zigbeeApi.write(device, IASZoneCluster.ID, Attributes.IAS_CIE_ADDRESS.getId(), myIeeeAddr);
                 print("CIE address set to: " + IEEEAddress.toColonNotation(myIeeeAddr), out);
-            }  catch (Exception e) {
+            } catch (Exception e) {
                 print("Failed to set CIE address.", out);
                 e.printStackTrace();
             }
@@ -1691,12 +1823,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Adds group membership to device.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "membershipadd [DEVICE] [GROUPID] [GROUPNAME]";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -1738,12 +1872,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Removes group membership from device.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "membershipremove [DEVICE] [GROUPID]";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -1782,12 +1918,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Views group name from device group membership.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "membershipview [DEVICE] [GROUPID]";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -1839,12 +1977,14 @@ public final class ZigBeeGateway {
         public String getDescription() {
             return "Lists group memberships from device.";
         }
+
         /**
          * {@inheritDoc}
          */
         public String getSyntax() {
             return "membershiplist [DEVICE]";
         }
+
         /**
          * {@inheritDoc}
          */
@@ -1865,7 +2005,7 @@ public final class ZigBeeGateway {
             if (result.isSuccess()) {
                 final GetGroupMembershipResponseCommand response = result.getResponse();
                 out.print("Member of groups:");
-                for (final Unsigned16BitInteger value :  response.getGroupList()) {
+                for (final Unsigned16BitInteger value : response.getGroupList()) {
                     out.print(' ');
                     out.print(value.getValue());
                 }
@@ -1880,8 +2020,9 @@ public final class ZigBeeGateway {
 
     /**
      * Default processing for command result.
+     *
      * @param result the command result
-     * @param out the output
+     * @param out    the output
      * @return TRUE if result is success
      */
     private boolean defaultResponseProcessing(CommandResult result, PrintStream out) {
@@ -1896,8 +2037,9 @@ public final class ZigBeeGateway {
 
     /**
      * Parses string value to Object.
+     *
      * @param stringValue the string value
-     * @param zigBeeType the ZigBee type
+     * @param zigBeeType  the ZigBee type
      * @return the value Object
      */
     private Object parseValue(String stringValue, ZigBeeType zigBeeType) {

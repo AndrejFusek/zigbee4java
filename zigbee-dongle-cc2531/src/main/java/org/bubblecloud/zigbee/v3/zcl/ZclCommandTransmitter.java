@@ -19,14 +19,16 @@ import org.bubblecloud.zigbee.api.cluster.impl.core.AbstractCommand;
 import org.bubblecloud.zigbee.api.cluster.impl.core.ZCLFrame;
 import org.bubblecloud.zigbee.network.ApplicationFrameworkMessageListener;
 import org.bubblecloud.zigbee.network.ClusterMessage;
+import org.bubblecloud.zigbee.network.impl.ApplicationFrameworkLayer;
+import org.bubblecloud.zigbee.network.impl.ClusterMessageImpl;
+import org.bubblecloud.zigbee.network.impl.ZigBeeNetworkManagerException;
+import org.bubblecloud.zigbee.network.impl.ZigBeeNetworkManagerImpl;
 import org.bubblecloud.zigbee.network.packet.ResponseStatus;
 import org.bubblecloud.zigbee.network.packet.af.*;
-import org.bubblecloud.zigbee.v3.CommandListener;
-import org.bubblecloud.zigbee.network.impl.*;
-import org.bubblecloud.zigbee.v3.ZigBeeException;
-import org.bubblecloud.zigbee.v3.model.Status;
-import org.bubblecloud.zigbee.v3.zcl.protocol.ZclCommandType;
 import org.bubblecloud.zigbee.util.ByteUtils;
+import org.bubblecloud.zigbee.v3.CommandListener;
+import org.bubblecloud.zigbee.v3.ZigBeeException;
+import org.bubblecloud.zigbee.v3.zcl.protocol.ZclCommandType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,6 +85,11 @@ public class ZclCommandTransmitter implements ApplicationFrameworkMessageListene
 
     @Override
     public boolean notify(final AF_INCOMING_MSG clusterMessage) {
+        if(clusterMessage.getData().length == 0) {
+            LOGGER.warn("AF_INCOMING_MSG with no data from {}.{} on cluster {}.", clusterMessage.getSrcAddr(),
+                    clusterMessage.getSrcEndpoint(), clusterMessage.getClusterId());
+            return false;
+        }
 
         final ZCLFrame frame = new ZCLFrame(new ClusterMessageImpl(clusterMessage.getData(),
                 clusterMessage.getClusterId()));

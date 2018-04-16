@@ -1,5 +1,6 @@
 package org.bubblecloud.zigbee.v3;
 
+import org.bubblecloud.zigbee.network.PermitJoinListener;
 import org.bubblecloud.zigbee.network.impl.*;
 import org.bubblecloud.zigbee.network.model.DriverStatus;
 import org.bubblecloud.zigbee.network.model.NetworkMode;
@@ -110,6 +111,14 @@ public class ZigBeeDongleTiCc2531Impl implements ZigBeeDongle {
     public void removeCommandListener(final CommandListener commandListener) {
         this.zclCommandTransmitter.removeCommandListener(commandListener);
         this.zdoCommandTransmitter.removeCommandListener(commandListener);
+    }
+
+    public void addPermitJoinListener(PermitJoinListener listener) {
+        networkManager.addPermitJoinListener(listener);
+    }
+
+    public void removePermitJoinListener(PermitJoinListener listener) {
+        networkManager.removePermitJoinListener(listener);
     }
 
 }

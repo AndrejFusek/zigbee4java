@@ -129,11 +129,19 @@ public class ApplicationFrameworkLayer {
 
     public int getSenderEndpointProfileId(short endpointId, int clusterId) {
         for (final Map.Entry<SenderIdentifier, Short> entry : sender2EndPoint.entrySet()) {
-            if (endpointId == entry.getValue().shortValue() && clusterId == entry.getKey().clusterId) {
+            if (endpointId == entry.getValue() && clusterId == entry.getKey().clusterId) {
                 return entry.getKey().profileId;
             }
         }
-        throw new IllegalArgumentException("No sender EndPoint " + endpointId+ " with cluster " + clusterId + ".");
+        //cluster not found for required endpointId, so find another endpoint
+        for (final Map.Entry<SenderIdentifier, Short> entry : sender2EndPoint.entrySet()) {
+            if (clusterId == entry.getKey().clusterId) {
+                logger.warn("No sender EndPoint {} with cluster {}, so found in EndPoint {}.",
+                        endpointId, clusterId, entry.getValue());
+                return entry.getKey().profileId;
+            }
+        }
+        throw new IllegalArgumentException("No sender EndPoint with cluster " + clusterId + ".");
     }
 
     public short getSendingEndpoint(ZigBeeEndpoint endpoint, ClusterMessage input) {

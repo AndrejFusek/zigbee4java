@@ -10,6 +10,17 @@ import org.bubblecloud.zigbee.util.DoubleByte;
 public class ZDO_PERMIT_JOIN_IND extends ZToolPacket {
 
     /**
+     * Remaining time (in seconds) to join new devices.
+     * If value is 255, then the joining is enabled "forever" - without timeout.
+     */
+    public int value;
+
+    /**
+     * If join is enabled (it is so when value > 0).
+     */
+    public boolean enabled;
+
+    /**
      * Constructor
      */
     public ZDO_PERMIT_JOIN_IND() {
@@ -17,9 +28,14 @@ public class ZDO_PERMIT_JOIN_IND extends ZToolPacket {
 
     /**
      * Constructor
+     *
      * @param framedata
      */
     public ZDO_PERMIT_JOIN_IND(int[] framedata) {
+        if (framedata.length > 0) {
+            value = framedata[0];
+            enabled = value > 0;
+        }
         super.buildPacket(new DoubleByte(ZToolCMD.ZDO_PERMIT_JOIN_IND), framedata);
     }
 
