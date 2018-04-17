@@ -1,12 +1,12 @@
 /**
  * Copyright 2016 Tommi S.E. Laukkanen
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -85,7 +85,7 @@ public class ZclCommandTransmitter implements ApplicationFrameworkMessageListene
 
     @Override
     public boolean notify(final AF_INCOMING_MSG clusterMessage) {
-        if(clusterMessage.getData().length == 0) {
+        if (clusterMessage.getData().length == 0) {
             LOGGER.warn("AF_INCOMING_MSG with no data from {}.{} on cluster {}.", clusterMessage.getSrcAddr(),
                     clusterMessage.getSrcEndpoint(), clusterMessage.getClusterId());
             return false;
@@ -141,7 +141,7 @@ public class ZclCommandTransmitter implements ApplicationFrameworkMessageListene
 
             for (final ZclCommandType candidate : ZclCommandType.values()) {
                 if (candidate.getClusterType().getProfileType().getId() == profileId && candidate.getClusterType().getId() == clusterId
-                        && candidate.getId() == (commandId  & (0xFF))
+                        && candidate.getId() == (commandId & (0xFF))
                         && candidate.isReceived() == isClientServerDirection) {
                     command = candidate;
                     break;
@@ -155,7 +155,7 @@ public class ZclCommandTransmitter implements ApplicationFrameworkMessageListene
 
             for (final ZclCommandType candidate : ZclCommandType.values()) {
                 if (candidate.getClusterType().getProfileType().getId() == profileId && candidate.isGeneric()
-                        && candidate.getId() == (commandId  & (0xFF))) {
+                        && candidate.getId() == (commandId & (0xFF))) {
                     command = candidate;
                     break;
                 }
@@ -202,12 +202,12 @@ public class ZclCommandTransmitter implements ApplicationFrameworkMessageListene
 
             commandMessage.setSourceEnpoint(
                     af.getSendingEndpoint(commandMessage.getType().getClusterType().getProfileType().getId(),
-                    clusterId));
+                            clusterId));
 
             final byte[] payload = ZclCommandProtocol.serializePayload(commandMessage);
 
             final AbstractCommand cmd = new AbstractCommand((byte) commandMessage.getType().getId(), null,
-                    commandMessage.getType().isGeneric() ? true  : commandMessage.getType().isReceived(), !commandMessage.getType().isGeneric());
+                    commandMessage.getType().isGeneric() ? true : commandMessage.getType().isReceived(), !commandMessage.getType().isGeneric());
             cmd.setPayload(payload);
             final ZCLFrame zclFrame = new ZCLFrame(cmd, true);
             if (commandMessage.getTransactionId() != null) {
@@ -233,7 +233,7 @@ public class ZclCommandTransmitter implements ApplicationFrameworkMessageListene
                             "Unable to send cluster on the ZigBee network due to general error.");
                 }
 
-                if (response.getStatus()  != 0) {
+                if (response.getStatus() != 0) {
                     throw new ZigBeeException("Unable to send cluster on the ZigBee network due to: "
                             + ResponseStatus.getStatus(response.getStatus())
                             + " " + (response.getErrorMsg() != null ? " - " + response.getErrorMsg() : "") + ")");
@@ -242,13 +242,13 @@ public class ZclCommandTransmitter implements ApplicationFrameworkMessageListene
                 return commandMessage.getTransactionId();
 
             } else {
-               final AfDataSrspExt response = networkManager.sendAFDataRequestExt(new AfDataRequestExt(
+                final AfDataSrspExt response = networkManager.sendAFDataRequestExt(new AfDataRequestExt(
                         commandMessage.getDestinationGroupId(), sender,
                         input.getId(), afTransactionId, (byte) (0) /*options*/, (byte) 0 /*radius*/, msg));
                 commandMessage.setTransactionId(zclFrame.getHeader().getTransactionId());
                 LOGGER.debug(">>> " + commandMessage.toString());
 
-                if (response.getStatus()  != 0) {
+                if (response.getStatus() != 0) {
                     throw new ZigBeeException("Unable to send cluster on the ZigBee network due to: "
                             + ResponseStatus.getStatus(response.getStatus()));
                 }

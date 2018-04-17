@@ -70,22 +70,24 @@ public class ZDO_MATCH_DESC_REQ extends ZToolPacket /*implements IREQUEST,IZDO*/
         this.OutClusterList = new DoubleByte[0x10];
     }
 
-    public ZDO_MATCH_DESC_REQ(ZToolAddress16 num1, ZToolAddress16 num2, DoubleByte num3, int num4, DoubleByte[] numArray1, int num5, DoubleByte[] numArray2, int security_suite1) {
-        this.DstAddr = num1;
-        this.NWKAddrOfInterest = num2;
-        this.ProfileID = num3;
-        this.NumInClusters = num4;
-        this.InClusterList = new DoubleByte[numArray1.length];
-        this.InClusterList = numArray1;
+    public ZDO_MATCH_DESC_REQ(ZToolAddress16 destinationAddr, ZToolAddress16 addrOfInterest, DoubleByte profID,
+                              int inClustersLen, DoubleByte[] inClusters,
+                              int outClustersLen, DoubleByte[] outClusters, int security_suite1) {
+        this.DstAddr = destinationAddr;
+        this.NWKAddrOfInterest = addrOfInterest;
+        this.ProfileID = profID;
+        this.NumInClusters = inClustersLen;
+        this.InClusterList = new DoubleByte[inClusters.length];
+        this.InClusterList = inClusters;
         /*if (numArray1.Length > 0x10)
         {
         throw new Exception("Error creating object.");
         }
         this.InClusterList = new ushort[0x10];
         Array.Copy(numArray1, this.InClusterList, numArray1.Length);*/
-        this.NumOutClusters = num5;
-        this.OutClusterList = new DoubleByte[numArray1.length];
-        this.OutClusterList = numArray1;
+        this.NumOutClusters = outClustersLen;
+        this.OutClusterList = new DoubleByte[outClusters.length];
+        this.OutClusterList = outClusters;
         /*if (numArray2.Length > 0x10)
         {
         throw new Exception("Error creating object.");

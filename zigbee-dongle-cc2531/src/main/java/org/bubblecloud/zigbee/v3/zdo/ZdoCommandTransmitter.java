@@ -1,12 +1,12 @@
 /**
  * Copyright 2016 Tommi S.E. Laukkanen
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -103,7 +103,7 @@ public class ZdoCommandTransmitter implements AsynchronousCommandListener {
                         getZToolAddress16(ieeeAddressRequest.getNetworkAddress()),
                         ieeeAddressRequest.getType(),
                         ieeeAddressRequest.getStartIndex()
-                        ));
+                ));
             }
             if (command instanceof SimpleDescriptorRequest) {
                 final SimpleDescriptorRequest simpleDescriptorRequest = (SimpleDescriptorRequest) command;
@@ -135,7 +135,7 @@ public class ZdoCommandTransmitter implements AsynchronousCommandListener {
                         bindRequest.getBindDestinationAddressingMode(),
                         getZToolAddress64(bindRequest.getBindDestinationAddress()),
                         bindRequest.getBindDestinationEndpoint()
-                        ));
+                ));
             }
             if (command instanceof UnbindRequest) {
                 final UnbindRequest unbindRequest = (UnbindRequest) command;
@@ -180,15 +180,24 @@ public class ZdoCommandTransmitter implements AsynchronousCommandListener {
                         managementLqiRequest.getStartIndex()
                 ));
             }
+            if (command instanceof MatchDescriptionRequest) {
+                final MatchDescriptionRequest matchDescriptionRequest = (MatchDescriptionRequest) command;
+                networkManager.sendCommand(new ZDO_MATCH_DESC_REQ(matchDescriptionRequest.getDstAddr(),
+                        matchDescriptionRequest.getNWKAddrOfInterest(), matchDescriptionRequest.getProfileID(),
+                        matchDescriptionRequest.getNumInClusters(), matchDescriptionRequest.getInClusterList(),
+                        matchDescriptionRequest.getNumOutClusters(), matchDescriptionRequest.getOutClusterList(),
+                        0));
+            }
         }
     }
 
     private ZToolAddress16 getZToolAddress16(int networkAddress) {
         return new ZToolAddress16(
-                            Integers.getByteAsInteger(networkAddress, 1),
-                            Integers.getByteAsInteger(networkAddress, 0)
-                    );
+                Integers.getByteAsInteger(networkAddress, 1),
+                Integers.getByteAsInteger(networkAddress, 0)
+        );
     }
+
     private ZToolAddress64 getZToolAddress64(long networkAddress) {
         return new ZToolAddress64(networkAddress);
     }
@@ -198,7 +207,7 @@ public class ZdoCommandTransmitter implements AsynchronousCommandListener {
         if (packet.isError()) {
             return;
         }
-        if(packet.getCMD().get16BitValue() == ZToolCMD.ZDO_LEAVE_IND) {
+        if (packet.getCMD().get16BitValue() == ZToolCMD.ZDO_LEAVE_IND) {
             final ZDO_LEAVE_IND message = (ZDO_LEAVE_IND) packet;
             final LeaveIndication command = new LeaveIndication();
             command.setSourceAddress(message.srcAddr.get16BitValue());
@@ -401,6 +410,23 @@ public class ZdoCommandTransmitter implements AsynchronousCommandListener {
                     message.getStartIndex(),
                     message.getNeighborLQICount(),
                     neighbors
+            );
+
+            notifyCommandReceived(command);
+
+            return;
+        }
+
+
+        if (packet.getCMD().get16BitValue() == ZToolCMD.ZDO_MATCH_DESC_RSP) {
+            final ZDO_MATCH_DESC_RSP message = (ZDO_MATCH_DESC_RSP) packet;
+
+            final MatchDescriptionResponse command = new MatchDescriptionResponse(
+                    message.MatchCount,
+                    message.MatchEndpointList,
+                    message.NWKAddrOfInterest,
+                    message.SrcAddress,
+                    message.Status
             );
 
             notifyCommandReceived(command);
