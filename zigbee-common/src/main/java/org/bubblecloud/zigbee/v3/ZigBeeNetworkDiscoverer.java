@@ -59,6 +59,8 @@ public class ZigBeeNetworkDiscoverer implements CommandListener {
     final Map<String, Long> endpointDescriptorRequestTimes =
             Collections.synchronizedMap(new HashMap<String, Long>());
 
+    final List<Runnable> toDescript = new ArrayList<Runnable>();
+
     /**
      * Discovers ZigBee network state.
      *
@@ -138,8 +140,16 @@ public class ZigBeeNetworkDiscoverer implements CommandListener {
             final ActiveEndpointsResponse activeEndpointsResponse = (ActiveEndpointsResponse) command;
             if (activeEndpointsResponse.getStatus() == 0) {
                 for (final int endpoint : activeEndpointsResponse.getActiveEndpoints()) {
-                    int networkAddress = activeEndpointsResponse.getNetworkAddress();
-                    describeEndpoint(networkAddress, endpoint);
+                    final int networkAddress = activeEndpointsResponse.getNetworkAddress();
+                    toDescript.add(new Runnable() {
+                        @Override
+                        public void run() {
+                            describeEndpoint(networkAddress, endpoint);
+                        }
+                    });
+                }
+                if(toDescript.size() > 0) {
+                    toDescript.remove(0).run();
                 }
             } else {
                 LOGGER.warn(activeEndpointsResponse.toString());
@@ -153,6 +163,10 @@ public class ZigBeeNetworkDiscoverer implements CommandListener {
                 final int networkAddress = simpleDescriptorResponse.getNetworkAddress();
                 final IeeeAddressResponse ieeeAddressResponse = ieeeAddresses.get(networkAddress);
                 final NodeDescriptorResponse nodeDescriptorResponse = nodeDescriptors.get(networkAddress);
+
+                if(toDescript.size() > 0) {
+                    toDescript.remove(0).run();
+                }
 
                 if (ieeeAddressResponse == null || nodeDescriptorResponse == null) {
                     return;
